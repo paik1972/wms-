@@ -195,19 +195,45 @@ metaphlan --install --db_dir /opt/refs/bacteria/metaphlan_db
 > `--mapout`과 `--samout`은 동일한 매핑을 다른 형식으로 저장하므로 성능 손실 없음.
 
 ```bash
-mkdir -p $HOME/2.ASM/metaphlan4_out/sam
+> mapping 이어서 하기
 
 for f in $HOME/2.ASM/rawdata/*_1.fastq.gz; do
     SAMPLE=$(basename "$f" _1.fastq.gz)
+    
+    # 이미 완료된 샘플은 스킵
+    if [ -f "$HOME/2.ASM/analysis/1_metaphlan4_out/bowtie2/${SAMPLE}.bowtie2.bz2" ]; then
+        echo "Skipping ${SAMPLE} (already done)"
+        continue
+    fi
+    
     metaphlan \
         "$HOME/2.ASM/rawdata/${SAMPLE}_1.fastq.gz,$HOME/2.ASM/rawdata/${SAMPLE}_2.fastq.gz" \
         --input_type fastq \
         --db_dir /opt/refs/bacteria/metaphlan_db \
-        --mapout $HOME/2.ASM/metaphlan4_out/bowtie2/${SAMPLE}.bowtie2.bz2 \
-        --samout $HOME/2.ASM/metaphlan4_out/sam/${SAMPLE}.sam.bz2 \
+        --mapout $HOME/2.ASM/analysis/1_metaphlan4_out/bowtie2/${SAMPLE}.bowtie2.bz2 \
+        --samout $HOME/2.ASM/analysis/1_metaphlan4_out/sam/${SAMPLE}.sam.bz2 \
+        --nproc 5 \
+done
+
+>profiles(relative abundance table)이어서 만들기
+
+# bowtie2 폴더 내의 매핑 완료된 파일들만 대상으로 루프 실행
+for f in $HOME/2.ASM/analysis/1_metaphlan4_out/bowtie2/*.bowtie2.bz2; do
+    # 파일명에서 .bowtie2.bz2 접미사를 제거하여 순수 샘플명 추출
+    SAMPLE=$(basename "$f" .bowtie2.bz2)
+
+    if [ -f "$HOME/2.ASM/analysis/1_metaphlan4_out/profiles/${SAMPLE}_profile.txt" ]; then
+        echo "Skipping ${SAMPLE}"
+        continue
+    fi
+
+    metaphlan \
+        "$f" \
+        --input_type mapout \
+        --db_dir /opt/refs/bacteria/metaphlan_db \
         --nproc 5 \
         --tax_lev a \
-        -o $HOME/2.ASM/metaphlan4_out/profiles/${SAMPLE}_profile.txt
+        -o "$HOME/2.ASM/analysis/1_metaphlan4_out/profiles/${SAMPLE}_profile.txt"
 done
 ```
 
