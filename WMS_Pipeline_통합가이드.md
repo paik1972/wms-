@@ -258,20 +258,33 @@ https://github.com/timyerg/Metaphlan-absolute-abundance-merger
 ```bash
 mkdir -p $HOME/2.ASM/metaphlan4_out/strainphlan/consensus_markers
 
-for f in $HOME/2.ASM/metaphlan4_out/sam/*.sam.bz2; do
+for f in $HOME/2.ASM/analysis/1_metaphlan4_out/sam/*.sam.bz2; do
     SAMPLE=$(basename "$f" .sam.bz2)
 
-    # 압축 해제 → 임시 SAM 생성
+    if [ -f "$HOME/2.ASM/analysis/1_metaphlan4_out/strainphlan/consensus_markers/${SAMPLE}.json.bz2" ]; then
+        echo "Skipping ${SAMPLE}"
+        continue
+    fi
+
+    echo "Processing ${SAMPLE}..."
     bzcat "$f" > /tmp/${SAMPLE}.sam
 
     sample2markers.py \
         -i /tmp/${SAMPLE}.sam \
-        -o $HOME/2.ASM/metaphlan4_out/strainphlan/consensus_markers \
+        -o $HOME/2.ASM/analysis/1_metaphlan4_out/strainphlan/consensus_markers \
         -n 5 \
         -d /opt/refs/bacteria/metaphlan_db/mpa_vJan25_CHOCOPhlAnSGB_202503.pkl \
         -f sam
 
-    rm /tmp/${SAMPLE}.sam   # 임시 파일 삭제
+    rm /tmp/${SAMPLE}.sam
+
+    # json.bz2 확인 후에만 sam.bz2 삭제
+    if [ -f "$HOME/2.ASM/analysis/1_metaphlan4_out/strainphlan/consensus_markers/${SAMPLE}.json.bz2" ]; then
+        rm "$f"
+        echo "${SAMPLE} done & deleted"
+    else
+        echo "⚠️ WARNING: ${SAMPLE} json 생성 실패 - sam.bz2 보존!"
+    fi
 done
 ```
 
