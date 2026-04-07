@@ -243,6 +243,16 @@ merge_metaphlan_tables.py \
 merge_metaphlan_tables.py \
     $HOME/2.ASM/metaphlan4_out/profiles_counts/*_counts.txt \
     -o $HOME/2.ASM/metaphlan4_out/merged/merged_counts_table.txt
+기본 merge_metaphlan_tables.py 스크립트는 relative_abundance 컬럼을 우선적으로 병합하도록 하드코딩되어 있어, ANCOM-BC2 분석에 필요한 estimated count(추정 읽기 수) 대신 퍼센트(%) 비율이 결과로 나오게 됩니다. 
+GitHub
+GitHub
+ +1
+기억하시는 대로, GitHub에서 수정된 merge_metaphlan4_tables_abs.py 스크립트를 사용해야 estimated_number_of_reads_from_the_clade 컬럼을 정확히 병합할 수 있습니다. 
+GitHub
+GitHub
+ +1
+수정된 스크립트 다운로드 및 사용법
+아래 명령어를 통해 timyerg님이 공개한 MetaPhlAn 4 전용 수정 스크립트를 다운로드하여 실행하세요.
 ```
 
 ### STEP 4: StrainPhlAn - consensus markers 생성
